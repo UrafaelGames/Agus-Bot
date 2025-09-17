@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import Embed
 import os
 import asyncio
+from dotenv import load_dotenv
 
 # ajustes
 intents = discord.Intents.default()
@@ -14,7 +15,13 @@ bot = commands.Bot(command_prefix='Agus!', intents=intents)
 bot = commands.Bot(command_prefix=':', intents=intents)
 
 # discord token key (dueño de la app : angely_.12)
-DISCORD_TOKEN = "MTQwNjI3MzcxNjcxODkyNzk4NA.G11zFR.D4MZViXC38vTEx9QVF2Rw1yHQ99DO7nWUxSXX4"
+# Urafael: He agregado esto 
+load_dotenv()
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
 
 # modulos
 async def cargar_modulos():    
