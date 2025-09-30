@@ -10,7 +10,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True  # esto es necesario para el sistema de rango
 
-bot = commands.Bot(command_prefix='agus!', intents=intents)
 bot = commands.Bot(command_prefix='Agus!', intents=intents)
 bot = commands.Bot(command_prefix=':', intents=intents)
 
@@ -30,7 +29,14 @@ async def cargar_modulos():
         await bot.load_extension("sistema_rangos.rangos_cog")
         print(" Sistema de rangos cargado")
     except Exception as e:
-        print(f" Error cargando sistema de rangos: {e}")
+        print(f"Error al cargar el sistema de rangos: {e}")
+    
+    # sistema de bienvenida
+    try:
+        await bot.load_extension("sistema_bienvenida.bienvenida_cog")
+        print("Sistema de bienvenida cargado")
+    except Exception as e:
+        print(f"Error al cargar el sistema de bienvenida: {e}")
     
     # cogs - redes sociales
     if os.path.exists("./cogs"):
@@ -38,11 +44,11 @@ async def cargar_modulos():
             if filename.endswith(".py") and filename != "__init__.py":
                 try:
                     await bot.load_extension(f"cogs.{filename[:-3]}")
-                    print(f" Cog cargado: {filename[:-3]}")
+                    print(f"Cog cargado: {filename[:-3]}")
                 except Exception as e:
-                    print(f" Error cargando {filename}: {e}")
+                    print(f"Error cargando {filename}: {e}")
     else:
-        print(" Carpeta 'cogs' no encontrada")
+        print("Carpeta 'cogs' no encontrada")
 
 # info
 @bot.event
@@ -76,12 +82,12 @@ async def ayuda(ctx):
         description="Lista de todos los comandos disponibles",
         color=0x00ff00
     )
-    embed.add_field(name="🔗 Redes Sociales", value="agus!redes - Mis redes sociales\nagus!youtube - Mi YouTube\nagus!kick - Mi Kick", inline=False)
-    embed.add_field(name="📊 Sistema de Rangos", value="agus!rango - Ver tu rango\nagus!toprangos - Top usuarios", inline=False)
-    embed.add_field(name="🛠️ Utilidades", value="agus!ping - Ver latencia\nagus!hola - Saludo del bot", inline=False)
-    embed.add_field(name="ℹ️ Información", value="agus!ayuda - Esta ayuda", inline=False)
-    embed.set_footer(text="Prefijo: agus!")
-    
+    embed.add_field(name="🔗 Redes Sociales", value="Agus!redes - Mis redes sociales\nAgus!youtube - Mi YouTube\nAgus!kick - Mi Kick", inline=False)
+    embed.add_field(name="📊 Sistema de Rangos", value="Agus!rango - Ver tu rango\Agus!toprangos - Top usuarios", inline=False)
+    embed.add_field(name="🛠️ Utilidades", value="Agus!ping - Ver latencia\nAgus!hola - Saludo del bot", inline=False)
+    embed.add_field(name="ℹ️ Información", value="Agus!ayuda - Esta ayuda", inline=False)
+    embed.set_footer(text="Prefijo: Agus!")
+
     await ctx.send(embed=embed)
 
 # run

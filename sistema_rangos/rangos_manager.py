@@ -19,19 +19,19 @@ class RangosManager:
                 "color": 0x808080
             },
             "Experimentado": {
-                "requisito": {"tiempo": 30, "mensajes": 500},  # 30 días, 500 mensajes
+                "requisito": {"tiempo": 30, "mensajes": 500},
                 "color": 0x00ff00
             },
             "Experto": {
-                "requisito": {"tiempo": 90, "mensajes": 1500},  # 90 días, 1500 mensajes
+                "requisito": {"tiempo": 90, "mensajes": 1500},
                 "color": 0x0000ff
             },
             "Pro": {
-                "requisito": {"tiempo": 180, "mensajes": 3000},  # 180 días, 3000 mensajes
+                "requisito": {"tiempo": 180, "mensajes": 3000},
                 "color": 0xff9900
             },
             "Leyenda": {
-                "requisito": {"tiempo": 365, "mensajes": 5000},  # 365 días, 5000 mensajes
+                "requisito": {"tiempo": 365, "mensajes": 5000},
                 "color": 0xff0000
             }
         }
@@ -54,12 +54,10 @@ class RangosManager:
             self.save_data()
 
     def save_data(self):
-        """guardar datos de usarios"""
         with open(self.data_file, 'w') as f:
             json.dump(self.user_data, f, indent=4)
 
     def get_user_data(self, user_id):
-        """obtiene datos"""
         user_id = str(user_id)
         if user_id not in self.user_data:
             self.user_data[user_id] = {
@@ -71,11 +69,42 @@ class RangosManager:
             }
         return self.user_data[user_id]
 
+    async def asignar_rango_novato(self, member):
+        if member.bot:
+            return
+            
+        try:
+            guild = member.guild
+            novato_role = discord.utils.get(guild.roles, name="Novato")
+            
+            if not novato_role:
+                novato_role = await guild.create_role(
+                    name="Novato",
+                    color=discord.Color(0x808080),
+                    mentionable=False,
+                    reason="Rango automático para nuevos miembros"
+                )
+                print(f" Rol Novato creado en {guild.name}")
+            
+            if novato_role not in member.roles:
+                await member.add_roles(novato_role)
+                print(f" Rol Novato asignado a {member} en {guild.name}")
+            
+            user_data = self.get_user_data(member.id)
+            user_data["fecha_union"] = member.joined_at.isoformat() if member.joined_at else datetime.now().isoformat()
+            user_data["rango_actual"] = "Novato"
+            self.save_data()
+            
+            canal_bot_events = self.bot.get_channel(1421709050659475466)
+            if canal_bot_events:
+                await canal_bot_events.send(f"[DEBUG] Usuario {member.id} se le asigno el rango Novato por entrar al servidor")
+            
+        except Exception as e:
+            print(f" Error asignando rango novato a {member}: {e}")
+
     async def inicializar_servidor(self, guild):
-    
         print(f" Inicializando sistema de rangos en: {guild.name}")
         
-        # crear roles si no existen
         roles_creados = {}
         for rango_nombre in self.rangos.keys():
             role = discord.utils.get(guild.roles, name=rango_nombre)
@@ -93,14 +122,12 @@ class RangosManager:
                     continue
             roles_creados[rango_nombre] = role
         
-        # dar rol Novato a todos los miembros (excepto bots)
         novato_role = roles_creados.get("Novato")
         if novato_role:
             miembros_procesados = 0
             for member in guild.members:
                 if not member.bot:
                     try:
-                        # [ADVERTENCIA] remover otros roles de rango si los tiene
                         for rango in self.rangos.keys():
                             if rango != "Novato":
                                 role_to_remove = discord.utils.get(guild.roles, name=rango)
@@ -111,20 +138,18 @@ class RangosManager:
                             await member.add_roles(novato_role)
                             miembros_procesados += 1
                             
-                        # datos del usario
                         user_data = self.get_user_data(member.id)
                         if "fecha_union" not in user_data:
                             user_data["fecha_union"] = member.joined_at.isoformat() if member.joined_at else datetime.now().isoformat()
                         
                     except Exception as e:
-                        print(f"❌ Error procesando miembro {member}: {e}")
+                        print(f" Error procesando miembro {member}: {e}")
             
             print(f" {miembros_procesados} miembros inicializados con rol Novato")
         
         self.save_data()
 
     async def procesar_mensaje(self, message):
-        """procesa un mensaje y actualiza stats"""
         if message.author.bot:
             return
             
@@ -132,24 +157,20 @@ class RangosManager:
         user_data["mensajes"] += 1
         user_data["ultimo_mensaje"] = datetime.now().isoformat()
         
-        # contar mensajes por día
         hoy = datetime.now().strftime("%Y-%m-%d")
         user_data["mensajes_historial"][hoy] += 1
         
         self.save_data()
         
-        # verificar si sube de rango
         await self.verificar_rango(message.author, message.guild)
 
     async def verificar_rango(self, member, guild):
-        """verifica si un miembro debe subir de rango"""
         if member.bot:
             return
             
         user_data = self.get_user_data(member.id)
         rango_actual = user_data["rango_actual"]
         
-        # calcular tiempo en el servidor
         fecha_union = datetime.fromisoformat(user_data["fecha_union"])
         tiempo_en_servidor = (datetime.now() - fecha_union).days
         total_mensajes = user_data["mensajes"]
@@ -162,34 +183,28 @@ class RangosManager:
             if (tiempo_en_servidor >= requisitos["tiempo"] and 
                 total_mensajes >= requisitos["mensajes"]):
                 
-                # Subir de rango
                 await self.asignar_nuevo_rango(member, guild, next_rango, user_data)
                 return True
         
         return False
 
     async def asignar_nuevo_rango(self, member, guild, nuevo_rango, user_data):
-        """Asigna un nuevo rango a un miembro"""
         try:
-            # Obtener roles
             rol_actual = discord.utils.get(guild.roles, name=user_data["rango_actual"])
             nuevo_rol = discord.utils.get(guild.roles, name=nuevo_rango)
             
             if not nuevo_rol:
-                print(f"❌ Rol {nuevo_rango} no encontrado")
+                print(f" Rol {nuevo_rango} no encontrado")
                 return
             
-            # remover rol actual y asignar nuevo
             if rol_actual:
                 await member.remove_roles(rol_actual)
             await member.add_roles(nuevo_rol)
             
-            # actualizar datos
             user_data["rango_actual"] = nuevo_rango
             user_data["ultimo_rango"] = datetime.now().isoformat()
             self.save_data()
             
-            # enviar anuncio
             await self.enviar_anuncio_rango(member, guild, nuevo_rango)
             
             print(f" {member} ha subido a {nuevo_rango}")
@@ -198,10 +213,8 @@ class RangosManager:
             print(f" Error asignando rango a {member}: {e}")
 
     async def enviar_anuncio_rango(self, member, guild, nuevo_rango):
-        """enviaa anuncio de nuevo rango"""
-        canal_avisos = discord.utils.get(guild.text_channels, name="rangos")
+        canal_avisos = self.bot.get_channel(1421709050659475466)
         if not canal_avisos:
-            # buscar cualquier canal que pueda servir
             canal_avisos = guild.system_channel or guild.text_channels[0]
         
         if canal_avisos:
@@ -215,16 +228,14 @@ class RangosManager:
             embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
             
             await canal_avisos.send(embed=embed)
-    # desde aqui empieza codigo generado por inteligencia artificial
+
     def get_next_rango(self, rango_actual):
-        """Obtiene el siguiente rango"""
         index = self.rango_order.index(rango_actual)
         if index < len(self.rango_order) - 1:
             return self.rango_order[index + 1]
         return "Máximo rango alcanzado"
 
     def get_user_stats(self, user_id):
-        """Obtiene estadísticas de un usuario"""
         user_data = self.get_user_data(user_id)
         fecha_union = datetime.fromisoformat(user_data["fecha_union"])
         tiempo_en_servidor = (datetime.now() - fecha_union).days

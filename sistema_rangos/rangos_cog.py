@@ -9,15 +9,17 @@ class RangosCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-       
         print(" Sistema de rangos inicializando...")
         for guild in self.bot.guilds:
             await self.manager.inicializar_servidor(guild)
         print(" Sistema de rangos listo!")
 
     @commands.Cog.listener()
+    async def on_member_join(self, member):
+        await self.manager.asignar_rango_novato(member)
+
+    @commands.Cog.listener()
     async def on_message(self, message):
-        
         if message.guild and not message.author.bot:
             await self.manager.procesar_mensaje(message)
 
@@ -55,7 +57,6 @@ class RangosCog(commands.Cog):
     @commands.command(name="top")
     @commands.has_permissions(manage_roles=True)
     async def top_rangos(self, ctx):
-
         sorted_users = sorted(
             [(user_id, data) for user_id, data in self.manager.user_data.items()],
             key=lambda x: x[1]["mensajes"],
@@ -85,7 +86,6 @@ class RangosCog(commands.Cog):
     @commands.command(name="forzar_rango")
     @commands.has_permissions(administrator=True)
     async def forzar_rango(self, ctx, member: discord.Member, rango: str):
-        
         if rango not in self.manager.rangos:
             await ctx.send("❌ Rango no válido. Rangos disponibles: " + ", ".join(self.manager.rangos.keys()))
             return
