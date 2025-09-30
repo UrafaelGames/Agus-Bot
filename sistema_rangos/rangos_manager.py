@@ -9,10 +9,10 @@ class RangosManager:
     def __init__(self, bot):
         self.bot = bot
         self.data_file = "data/rangos_data.json"
+        self.canal_debug_id = 1422599371664396399
         self.ensure_data_file()
         self.load_data()
         
-        # Definición de rangos
         self.rangos = {
             "Novato": {
                 "requisito": {"tiempo": 0, "mensajes": 0},
@@ -69,6 +69,14 @@ class RangosManager:
             }
         return self.user_data[user_id]
 
+    async def enviar_debug(self, mensaje):
+        try:
+            canal_debug = self.bot.get_channel(self.canal_debug_id)
+            if canal_debug:
+                await canal_debug.send(f"[RANGOS_DEBUG] {mensaje}")
+        except Exception as e:
+            print(f"Error enviando debug: {e}")
+
     async def asignar_rango_novato(self, member):
         if member.bot:
             return
@@ -84,26 +92,22 @@ class RangosManager:
                     mentionable=False,
                     reason="Rango automático para nuevos miembros"
                 )
-                print(f" Rol Novato creado en {guild.name}")
+                await self.enviar_debug(f"Rol Novato creado en {guild.name}")
             
             if novato_role not in member.roles:
                 await member.add_roles(novato_role)
-                print(f" Rol Novato asignado a {member} en {guild.name}")
+                await self.enviar_debug(f"Usuario {member.id} se le asigno el rango Novato por entrar al servidor")
             
             user_data = self.get_user_data(member.id)
             user_data["fecha_union"] = member.joined_at.isoformat() if member.joined_at else datetime.now().isoformat()
             user_data["rango_actual"] = "Novato"
             self.save_data()
             
-            canal_bot_events = self.bot.get_channel(1421709050659475466)
-            if canal_bot_events:
-                await canal_bot_events.send(f"[DEBUG] Usuario {member.id} se le asigno el rango Novato por entrar al servidor")
-            
         except Exception as e:
-            print(f" Error asignando rango novato a {member}: {e}")
+            await self.enviar_debug(f"Error asignando rango novato a {member.id}: {e}")
 
     async def inicializar_servidor(self, guild):
-        print(f" Inicializando sistema de rangos en: {guild.name}")
+        await self.enviar_debug(f"Inicializando sistema de rangos en: {guild.name}")
         
         roles_creados = {}
         for rango_nombre in self.rangos.keys():
@@ -116,9 +120,9 @@ class RangosManager:
                         mentionable=True,
                         reason="Sistema automático de rangos"
                     )
-                    print(f" Rol creado: {rango_nombre}")
+                    await self.enviar_debug(f"Rol creado: {rango_nombre}")
                 except Exception as e:
-                    print(f" Error creando rol {rango_nombre}: {e}")
+                    await self.enviar_debug(f"Error creando rol {rango_nombre}: {e}")
                     continue
             roles_creados[rango_nombre] = role
         
@@ -143,9 +147,9 @@ class RangosManager:
                             user_data["fecha_union"] = member.joined_at.isoformat() if member.joined_at else datetime.now().isoformat()
                         
                     except Exception as e:
-                        print(f" Error procesando miembro {member}: {e}")
+                        await self.enviar_debug(f"Error procesando miembro {member.id}: {e}")
             
-            print(f" {miembros_procesados} miembros inicializados con rol Novato")
+            await self.enviar_debug(f"{miembros_procesados} miembros inicializados con rol Novato")
         
         self.save_data()
 
@@ -194,7 +198,7 @@ class RangosManager:
             nuevo_rol = discord.utils.get(guild.roles, name=nuevo_rango)
             
             if not nuevo_rol:
-                print(f" Rol {nuevo_rango} no encontrado")
+                await self.enviar_debug(f"Rol {nuevo_rango} no encontrado")
                 return
             
             if rol_actual:
@@ -206,14 +210,38 @@ class RangosManager:
             self.save_data()
             
             await self.enviar_anuncio_rango(member, guild, nuevo_rango)
-            
-            print(f" {member} ha subido a {nuevo_rango}")
+            await self.enviar_debug(f"Usuario {member.id} ha subido a {nuevo_rango}")
             
         except Exception as e:
-            print(f" Error asignando rango a {member}: {e}")
+            await self.enviar_debug(f"Error asignando rango a {member.id}: {e}")
+
+    async def forzar_rango_comando(self, member, guild, rango, ejecutor):
+        try:
+            rol_actual = discord.utils.get(guild.roles, name=self.get_user_data(member.id)["rango_actual"])
+            nuevo_rol = discord.utils.get(guild.roles, name=rango)
+            
+            if not nuevo_rol:
+                await self.enviar_debug(f"Rol {rango} no encontrado para forzar")
+                return False
+            
+            if rol_actual:
+                await member.remove_roles(rol_actual)
+            await member.add_roles(nuevo_rol)
+            
+            user_data = self.get_user_data(member.id)
+            user_data["rango_actual"] = rango
+            user_data["ultimo_rango"] = datetime.now().isoformat()
+            self.save_data()
+            
+            await self.enviar_debug(f"Usuario {member.id} forzado a rango {rango} por {ejecutor.id}")
+            return True
+            
+        except Exception as e:
+            await self.enviar_debug(f"Error forzando rango a {member.id}: {e}")
+            return False
 
     async def enviar_anuncio_rango(self, member, guild, nuevo_rango):
-        canal_avisos = self.bot.get_channel(1421709050659475466)
+        canal_avisos = self.bot.get_channel(1417013591441277000)
         if not canal_avisos:
             canal_avisos = guild.system_channel or guild.text_channels[0]
         
