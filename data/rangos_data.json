@@ -1,0 +1,63 @@
+{
+    "871155021104951367": {
+        "mensajes": 70,
+        "fecha_union": "2025-10-06T03:12:36.532081+00:00",
+        "ultimo_mensaje": "2025-10-06T03:48:25.645493+00:00",
+        "rango_actual": "Leyenda",
+        "mensajes_historial": {
+            "2025-10-06": 70
+        }
+    },
+    "905506059198808124": {
+        "mensajes": 0,
+        "fecha_union": "2025-10-06T03:12:36.547659+00:00",
+        "ultimo_mensaje": null,
+        "rango_actual": "Novato",
+        "mensajes_historial": {}
+    },
+    "1172919826365296723": {
+        "mensajes": 140,
+        "fecha_union": "2025-10-06T03:12:36.547745+00:00",
+        "ultimo_mensaje": "2025-10-06T03:52:43.184679+00:00",
+        "rango_actual": "Leyenda",
+        "mensajes_historial": {
+            "2025-10-06": 140
+        }
+    },
+    "1275224574958764165": {
+        "mensajes": 0,
+        "fecha_union": "2025-10-06T03:12:36.548301+00:00",
+        "ultimo_mensaje": null,
+        "rango_actual": "Novato",
+        "mensajes_historial": {}
+    },
+    "1341258119824801854": {
+        "mensajes": 13,
+        "fecha_union": "2025-10-06T03:12:36.548337+00:00",
+        "ultimo_mensaje": "2025-10-06T03:48:18.919331+00:00",
+        "rango_actual": "Leyenda",
+        "mensajes_historial": {
+            "2025-10-06": 13
+        },
+        "ultimo_rango": "2025-10-06T03:36:08.891598+00:00"
+    },
+    "973383486893330532": {
+        "mensajes": 32,
+        "fecha_union": "2025-10-06T03:39:58.265235+00:00",
+        "ultimo_mensaje": "2025-10-06T03:51:57.822751+00:00",
+        "rango_actual": "Leyenda",
+        "mensajes_historial": {
+            "2025-10-06": 32
+        },
+        "ultimo_rango": "2025-10-06T03:40:47.818668+00:00"
+    },
+    "762612608368771143": {
+        "mensajes": 1,
+        "fecha_union": "2025-10-06T03:44:36.779557+00:00",
+        "ultimo_mensaje": "2025-10-06T03:44:37.435408+00:00",
+        "rango_actual": "Novato",
+        "mensajes_historial": {
+            "2025-10-06": 1
+        }
+    }
+}
